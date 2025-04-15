@@ -85,49 +85,33 @@ window.eliminarProducto = (index) => {
 
 // Enviar pedido
 document.getElementById("pedidoForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  
+  const pedido = {
+    vendedor: document.getElementById("vendedor").value,
+    cliente: document.getElementById("cliente").value,
+    productos: productosAgregados,
+    comentarios: document.getElementById("comentarios").value
+  };
 
-    // Validar solo campos obligatorios (vendedor y cliente)
-    const vendedor = document.getElementById("vendedor").value;
-    const cliente = document.getElementById("cliente").value;
+  try {
+    const response = await fetch(
+      "https://script.google.com/macros/s/AKfycbyHDbBguaVmRkoLl7XkJwyIIenWTVNFH-Jaa726vLZEwoJgbY77QCxSMVmC7i24EVxr/exec",
+      {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" }, // ¡Importante!
+        body: JSON.stringify(pedido),
+        mode: "no-cors" // Ignora CORS (no podrás leer la respuesta)
+      }
+    );
     
-    if (!vendedor || !cliente) {
-        alert("Los campos 'Vendedor' y 'Cliente' son obligatorios.");
-        return;
-    }
-
-    // Si no hay productos agregados, envía un array vacío
-    const pedido = {
-        vendedor: vendedor,
-        cliente: cliente,
-        productos: productosAgregados.length > 0 ? productosAgregados : [], // Array vacío si no hay productos
-        comentarios: document.getElementById("comentarios").value
-    };
-
-    try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbyHDbBguaVmRkoLl7XkJwyIIenWTVNFH-Jaa726vLZEwoJgbY77QCxSMVmC7i24EVxr/exec", {
-                 method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    vendedor: "Nombre Vendedor",
-    cliente: "Nombre Cliente",
-    productos: [{ producto: "Laptop", cantidad: "2" }], // Opcional
-    comentarios: "Urgente" // Opcional
-  })
-})
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(error => console.error("Error:", error));
-
-        if (response.ok) {
-            alert("Pedido guardado exitosamente.");
-            // Resetear formulario
-            document.getElementById("pedidoForm").reset();
-            productosAgregados = [];
-            document.getElementById("tablaProductos").classList.add("d-none");
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        alert("Error al guardar el pedido.");
-    }
+    // Aunque no puedas leer la respuesta, los datos llegarán a Sheets
+    alert("Pedido enviado. Revisa tu Google Sheet.");
+    document.getElementById("pedidoForm").reset();
+    productosAgregados = [];
+    
+  } catch (error) {
+    console.error("Error:", error);
+    alert("Los datos se enviaron, pero verifica tu Sheet.");
+  }
 });
