@@ -86,32 +86,37 @@ window.eliminarProducto = (index) => {
 // Enviar pedido
 document.getElementById("pedidoForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  
+
+  // 1. Obtener datos del formulario
   const pedido = {
     vendedor: document.getElementById("vendedor").value,
     cliente: document.getElementById("cliente").value,
-    productos: productosAgregados,
-    comentarios: document.getElementById("comentarios").value
+    productos: productosAgregados, // Array de productos previamente agregados
+    comentarios: document.getElementById("comentarios").value || "Sin comentarios"
   };
 
   try {
-    const response = await fetch(
-      "https://script.google.com/macros/s/AKfycbyHDbBguaVmRkoLl7XkJwyIIenWTVNFH-Jaa726vLZEwoJgbY77QCxSMVmC7i24EVxr/exec",
-      {
-        method: "POST",
-        headers: { "Content-Type": "text/plain" }, // ¡Importante!
-        body: JSON.stringify(pedido),
-        mode: "no-cors" // Ignora CORS (no podrás leer la respuesta)
-      }
-    );
+    // 2. Enviar a Google Apps Script
+    const response = await fetch("https://script.google.com/macros/s/AKfycbyHDbBguaVmRkoLl7XkJwyIIenWTVNFH-Jaa726vLZEwoJgbY77QCxSMVmC7i24EVxr/exec", { // Reemplaza con tu URL
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pedido)
+    });
+
+    // 3. Procesar respuesta
+    if (!response.ok) throw new Error("Error en la respuesta");
     
-    // Aunque no puedas leer la respuesta, los datos llegarán a Sheets
-    alert("Pedido enviado. Revisa tu Google Sheet.");
+    const data = await response.json();
+    
+    // 4. Mostrar ID y resetear formulario (éxito)
+    alert(`✅ Pedido registrado!\nID: ${data.idPedido}`);
     document.getElementById("pedidoForm").reset();
-    productosAgregados = [];
-    
+    productosAgregados = []; // Vaciar array de productos
+    document.getElementById("tablaProductos").classList.add("d-none"); // Ocultar tabla
+
   } catch (error) {
+    // 5. Manejar errores
     console.error("Error:", error);
-    alert("Los datos se enviaron, pero verifica tu Sheet.");
+    alert("⚠️ Error al enviar el pedido. Por favor, inténtalo nuevamente.");
   }
 });
